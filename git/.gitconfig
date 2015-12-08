@@ -3,3 +3,5 @@
 	name = Thomas Butz
 [core]
 	editor = nano
+[merge]
+	tool = meld
