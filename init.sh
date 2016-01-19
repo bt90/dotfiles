@@ -14,3 +14,5 @@ stow git
 stow ssh
 sudo stow -t / makepgk
 sudo stow -t / pacman
+sudo stow -t / tlp
+sudo stow -t / iwlwifi
