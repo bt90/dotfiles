@@ -16,3 +16,4 @@ sudo stow -t / makepkg
 sudo stow -t / pacman
 sudo stow -t / tlp
 sudo stow -t / iwlwifi
+sudo stow -t / iptables
