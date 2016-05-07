@@ -12,7 +12,7 @@ cd $(dirname $0)
 
 stow git
 stow ssh
-sudo stow -t / makepgk
+sudo stow -t / makepkg
 sudo stow -t / pacman
 sudo stow -t / tlp
 sudo stow -t / iwlwifi
