@@ -1,0 +1,103 @@
+*filter
+
+# Base policy
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+:LOGINPUT - [0:0]
+:LOGOUTPUT - [0:0]
+
+
+###############################################
+#                                             #
+#                   INPUT                     #
+#                                             #
+###############################################
+# Don't attempt to firewall internal traffic on the loopback device.
+-A INPUT -i lo -j ACCEPT
+
+# Allow already established connections
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Drop non-conforming packets, such as malformed headers, etc.
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+
+# Block remote packets claiming to be from a loopback address.
+-A INPUT -s 127.0.0.0/8 ! -i lo -j DROP
+
+# Accept ICMP
+-A INPUT -p icmp -m icmp --icmp-type any -j ACCEPT
+
+# Allow local connections
+-A INPUT -s 10.0.0.0/8 -j ACCEPT
+-A INPUT -s 172.16.0.0/12 -j ACCEPT
+-A INPUT -s 192.168.0.0/16 -j ACCEPT
+
+# Allow local multicasts
+-A INPUT -d 224.0.0.0/24 -j ACCEPT
+-A INPUT -d 239.0.0.0/8 -j ACCEPT
+
+# Allow broadcasts
+-A INPUT -d 255.255.255.255 -j ACCEPT
+
+###############################################
+#                                             #
+#                   OUTPUT                    #
+#                                             #
+###############################################
+# Allow already established connections
+-A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Allow any loopback traffic
+-A OUTPUT -o lo -j ACCEPT
+
+# Allow any VPN traffic
+-A OUTPUT -o tun0 -j ACCEPT
+
+# Allow ICMP
+-A OUTPUT -p icmp -m icmp --icmp-type any -j ACCEPT
+
+# Allow SSH connections
+-A OUTPUT -p tcp -m tcp --dport 22 -j ACCEPT
+
+# Allow DNS queries
+-A OUTPUT -p tcp -m tcp --dport 53 -j ACCEPT
+-A OUTPUT -p udp -m udp --dport 53 -j ACCEPT
+
+# Allow HTTP
+-A OUTPUT -p tcp -m tcp --dport 80 -j ACCEPT
+
+# Allow HTTPS
+-A OUTPUT -p tcp -m tcp --dport 443 -j ACCEPT
+
+# Allow VPN traffic
+-A OUTPUT -p udp -m udp --dport 3478 -j ACCEPT
+
+# Allow local connections
+-A OUTPUT -d 10.0.0.0/8 -j ACCEPT
+-A OUTPUT -d 172.16.0.0/12 -j ACCEPT
+-A OUTPUT -d 192.168.0.0/16 -j ACCEPT
+
+# Allow local multicasts
+-A OUTPUT -d 224.0.0.0/24 -j ACCEPT
+-A OUTPUT -d 239.0.0.0/8 -j ACCEPT
+
+# Allow broadcasts
+-A INPUT -d 255.255.255.255 -j ACCEPT
+
+###############################################
+#                                             #
+#                  LOGGING                    #
+#                                             #
+###############################################
+# Log dropped incoming packets
+-A INPUT -j LOGINPUT
+-A LOGINPUT -m limit --limit 2/min --limit-burst 10 -j LOG --log-prefix "[IPTables Block IN] " --log-level 4
+-A LOGINPUT -j DROP
+
+# Log dropped outgoing packets
+-A OUTPUT -j LOGOUTPUT
+-A LOGOUTPUT -m limit --limit 2/min --limit-burst 10 -j LOG --log-prefix "[IPTables Block OUT] " --log-level 4
+-A LOGOUTPUT -j DROP
+
+COMMIT
